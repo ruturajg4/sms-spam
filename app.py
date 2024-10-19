@@ -26,22 +26,36 @@ try:
 except FileNotFoundError as e:
     print("File not found:", e)
     raise SystemExit("Model or vectorizer file not found. Please ensure they are in the correct directory.")
+except pickle.UnpicklingError as e:
+    print("Error loading pickle files:", e)
+    raise SystemExit("An error occurred while loading the model or vectorizer.")
 
 # Initialize the Porter Stemmer
 ps = PorterStemmer()
 
 # Function to preprocess and transform text
 def transform_text(text):
-    # Convert text to lowercase
-    text = text.lower()
-    # Tokenize the text into words
-    text = nltk.word_tokenize(text)
+    try:
+        # Convert text to lowercase
+        text = text.lower()
+        # Tokenize the text into words
+        text = nltk.word_tokenize(text)
+        print("Tokenized text:", text)  # Debug log
 
-    # Keep only alphanumeric tokens and remove stopwords
-    y = [i for i in text if i.isalnum() and i not in stopwords.words('english') and i not in string.punctuation]
+        # Filter out non-alphanumeric tokens and stopwords
+        filtered_words = [i for i in text if i.isalnum() and i not in stopwords.words('english')]
+        print("Filtered words (no stopwords, punctuation):", filtered_words)  # Debug log
+        
+        # Apply stemming
+        stemmed_words = [ps.stem(i) for i in filtered_words]
+        print("Stemmed words:", stemmed_words)  # Debug log
+
+        # Join the processed words back into a string
+        return " ".join(stemmed_words)
     
-    # Apply stemming and join the processed words back into a single string
-    return " ".join([ps.stem(i) for i in y])
+    except Exception as e:
+        print("Error during text transformation:", e)
+        raise
 
 # Define home route
 @app.route('/')
@@ -56,12 +70,20 @@ def predict():
         input_sms = request.form['message']
 
         if input_sms.strip() != "":
+            print("Input SMS:", input_sms)  # Debug log
+
             # Preprocess the input message
             transformed_sms = transform_text(input_sms)
+            print("Transformed SMS:", transformed_sms)  # Debug log
+
             # Vectorize the transformed message
             vector_input = tfidf.transform([transformed_sms])
+            print("Vector input shape:", vector_input.shape)  # Debug log
+
             # Predict using the pre-trained model
             result = model.predict(vector_input)[0]
+            print("Model prediction result:", result)  # Debug log
+
             # Display the result
             output = 'Spam' if result == 1 else 'Not Spam'
 
@@ -69,9 +91,15 @@ def predict():
         else:
             return render_template('index.html', prediction_text='Please enter a message to classify.')
 
+    except FileNotFoundError as e:
+        print("File not found error:", e)
+        return render_template('index.html', prediction_text="File not found: model or vectorizer.")
+    except ValueError as e:
+        print("Value error during prediction:", e)
+        return render_template('index.html', prediction_text="Value error: Invalid input for prediction.")
     except Exception as e:
         print("Error occurred during prediction:", e)  # Log the error
-        return render_template('index.html', prediction_text='An error occurred during prediction.')
+        return render_template('index.html', prediction_text='An unexpected error occurred during prediction.')
 
 # Run the Flask app
 if __name__ == "__main__":
