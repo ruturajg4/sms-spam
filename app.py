@@ -9,6 +9,7 @@ import numpy as np
 # Ensure required NLTK data files are downloaded
 nltk.download('punkt')
 nltk.download('stopwords')
+nltk.download('averaged_perceptron_tagger')
 
 # Initialize Flask app
 app = Flask(__name__)
