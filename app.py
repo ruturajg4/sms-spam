@@ -7,9 +7,9 @@ import string
 import numpy as np
 
 # Ensure required NLTK data files are downloaded
-nltk.download('punkt')
+# Corrected to ensure only necessary resources are downloaded
+nltk.download('punkt')  # Correct download for tokenization
 nltk.download('stopwords')
-nltk.download('averaged_perceptron_tagger')
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -18,12 +18,14 @@ app = Flask(__name__)
 model_path = 'model1.pkl'
 vectorizer_path = 'vectorizer.pkl'
 
+# Load model and vectorizer from pickle files
 with open(model_path, 'rb') as file:
     model = pickle.load(file)
 
 with open(vectorizer_path, 'rb') as file:
     tfidf = pickle.load(file)
 
+# Initialize the Porter Stemmer
 ps = PorterStemmer()
 
 # Function to preprocess and transform text
