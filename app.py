@@ -1,15 +1,14 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template
 import pickle
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 import string
-import numpy as np
+import os
 
-# Ensure required NLTK data files are downloaded
-# Corrected to ensure only necessary resources are downloaded
-nltk.download('punkt')  # Correct download for tokenization
-nltk.download('stopwords')
+# Ensure required NLTK data files are downloaded only once
+nltk.download('punkt', quiet=True)
+nltk.download('stopwords', quiet=True)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -18,14 +17,16 @@ app = Flask(__name__)
 model_path = 'model1.pkl'
 vectorizer_path = 'vectorizer.pkl'
 
-# Load model and vectorizer from pickle files
-with open(model_path, 'rb') as file:
-    model = pickle.load(file)
+# Ensure that model and vectorizer files exist and are loaded correctly
+if os.path.exists(model_path) and os.path.exists(vectorizer_path):
+    with open(model_path, 'rb') as file:
+        model = pickle.load(file)
 
-with open(vectorizer_path, 'rb') as file:
-    tfidf = pickle.load(file)
+    with open(vectorizer_path, 'rb') as file:
+        tfidf = pickle.load(file)
+else:
+    raise FileNotFoundError("Model or vectorizer file not found.")
 
-# Initialize the Porter Stemmer
 ps = PorterStemmer()
 
 # Function to preprocess and transform text
@@ -33,31 +34,16 @@ def transform_text(text):
     # Convert text to lowercase
     text = text.lower()
     # Tokenize the text into words
-    text = nltk.word_tokenize(text)
+    words = nltk.word_tokenize(text)
 
-    y = []
-    for i in text:
-        # Only keep alphanumeric tokens
-        if i.isalnum():
-            y.append(i)
-
-    text = y[:]
-    y.clear()
-
-    for i in text:
-        # Remove stopwords and punctuation
-        if i not in stopwords.words('english') and i not in string.punctuation:
-            y.append(i)
-
-    text = y[:]
-    y.clear()
-
-    for i in text:
-        # Apply stemming
-        y.append(ps.stem(i))
+    # Remove non-alphanumeric characters, stopwords, and punctuation
+    filtered_words = [
+        ps.stem(word) for word in words 
+        if word.isalnum() and word not in stopwords.words('english') and word not in string.punctuation
+    ]
 
     # Join the processed words back into a single string
-    return " ".join(y)
+    return " ".join(filtered_words)
 
 # Define home route
 @app.route('/')
@@ -68,9 +54,9 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     # Get input message from the form
-    input_sms = request.form['message']
+    input_sms = request.form.get('message', '').strip()
 
-    if input_sms.strip() != "":
+    if input_sms:
         # 1. Preprocess the input message
         transformed_sms = transform_text(input_sms)
         # 2. Vectorize the transformed message
