@@ -50,25 +50,35 @@ def transform_text(text):
 def home():
     return render_template('index.html')
 
-# Define prediction route
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Get input message from the form
-    input_sms = request.form.get('message', '').strip()
+    try:
+        # Get input message from the form
+        input_sms = request.form.get('message', '').strip()
 
-    if input_sms:
-        # 1. Preprocess the input message
-        transformed_sms = transform_text(input_sms)
-        # 2. Vectorize the transformed message
-        vector_input = tfidf.transform([transformed_sms])
-        # 3. Predict using the pre-trained model
-        result = model.predict(vector_input)[0]
-        # 4. Display the result
-        output = 'Spam' if result == 1 else 'Not Spam'
+        if input_sms:
+            logging.debug(f"Received message: {input_sms}")
+            # 1. Preprocess the input message
+            transformed_sms = transform_text(input_sms)
+            logging.debug(f"Transformed message: {transformed_sms}")
+            # 2. Vectorize the transformed message
+            vector_input = tfidf.transform([transformed_sms])
+            logging.debug(f"Vectorized input: {vector_input}")
+            # 3. Predict using the pre-trained model
+            result = model.predict(vector_input)[0]
+            logging.debug(f"Prediction result: {result}")
+            # 4. Display the result
+            output = 'Spam' if result == 1 else 'Not Spam'
 
-        return render_template('index.html', prediction_text='Prediction: {}'.format(output))
-    else:
-        return render_template('index.html', prediction_text='Please enter a message to classify.')
+            return render_template('index.html', prediction_text='Prediction: {}'.format(output))
+        else:
+            return render_template('index.html', prediction_text='Please enter a message to classify.')
+    except Exception as e:
+        logging.error(f"Error occurred: {str(e)}")
+        return render_template('index.html', prediction_text='An error occurred. Please try again.')
 
 # Run the Flask app
 if __name__ == "__main__":
