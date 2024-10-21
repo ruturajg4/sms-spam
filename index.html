@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spam Classifier</title>
+    <style>
+        /* Resetting default margin and padding */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Setting the body background and centering the content */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9; /* Light background color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333; /* Text color */
+        }
+
+        /* Container for the form */
+        .container {
+            background-color: #fff; /* White background for form */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            max-width: 500px;
+            width: 100%;
+            text-align: center; /* Center align text */
+        }
+
+        /* Styling the heading */
+        h2 {
+            margin-bottom: 20px;
+            color: #4CAF50; /* Green text color */
+        }
+
+        /* Label styling */
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        /* Textarea styling */
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        /* Submit button styling */
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Hover effect for the submit button */
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        /* Styling the prediction text */
+        h3 {
+            color: #333;
+            margin-top: 20px;
+        }
+
+        /* Responsive form layout */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            textarea {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Centralized container for the form -->
+    <div class="container">
+        <h2>SMS Spam Classifier</h2>
+        <form action="/predict" method="post">
+            <label for="message">Enter the message:</label><br><br>
+            <textarea id="message" name="message" rows="4" cols="50"></textarea><br><br>
+            <input type="submit" value="Predict">
+        </form>
+        <br>
+        {% if prediction_text %}
+            <h3>{{ prediction_text }}</h3>
+        {% endif %}
+    </div>
+
+</body>
+</html>
