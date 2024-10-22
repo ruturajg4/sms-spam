@@ -7,6 +7,7 @@ import string
 import os
 import logging
 import traceback
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Initialize logging configuration
 logging.basicConfig(level=logging.DEBUG, 
@@ -16,7 +17,6 @@ logging.basicConfig(level=logging.DEBUG,
 try:
     nltk.download('punkt', quiet=True)
     nltk.download('stopwords', quiet=True)
-    nltk.download('punkt_tab',quiet=True)
 except Exception as e:
     logging.error(f"Error downloading NLTK data: {str(e)}")
 
@@ -37,6 +37,13 @@ if os.path.exists(model_path) and os.path.exists(vectorizer_path):
         with open(vectorizer_path, 'rb') as file:
             tfidf = pickle.load(file)
             logging.debug("TF-IDF vectorizer loaded successfully.")
+
+        # Check if the TF-IDF vectorizer is already fitted
+        if not hasattr(tfidf, 'vocabulary_'):
+            logging.info("TF-IDF vectorizer is not fitted. Fitting with a default corpus.")
+            default_corpus = ['This is a default message.', 'Spam messages are bad.', 'Ham messages are good.']
+            tfidf.fit(default_corpus)
+            logging.info("TF-IDF vectorizer has been fitted with the default corpus.")
     except Exception as e:
         logging.error(f"Failed to load model or vectorizer: {str(e)}")
         raise
@@ -99,3 +106,4 @@ def predict():
 # Run the Flask app
 if __name__ == "__main__":
     app.run(debug=True)
+  
