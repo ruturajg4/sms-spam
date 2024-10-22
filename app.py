@@ -16,6 +16,7 @@ logging.basicConfig(level=logging.DEBUG,
 try:
     nltk.download('punkt', quiet=True)
     nltk.download('stopwords', quiet=True)
+    nltk.download('punkt_tab',quiet=True)
 except Exception as e:
     logging.error(f"Error downloading NLTK data: {str(e)}")
 
