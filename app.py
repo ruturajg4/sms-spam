@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template
 import pickle
 import nltk
 from nltk.corpus import stopwords
@@ -76,40 +76,35 @@ def transform_text(text):
 def home():
     return render_template('index.html')
 
-# Route for prediction (accepts JSON input from Android app)
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Check if the request contains JSON data
-        if request.is_json:
-            data = request.get_json()
-            input_sms = data.get('message', '').strip()
+        # Get input message from the form
+        input_sms = request.form.get('message', '').strip()
 
-            if input_sms:
-                logging.debug(f"Received message: {input_sms}")
-                # 1. Preprocess the input message
-                transformed_sms = transform_text(input_sms)
-                logging.debug(f"Transformed message: {transformed_sms}")
-                # 2. Vectorize the transformed message
-                vector_input = tfidf.transform([transformed_sms])
-                logging.debug(f"Vectorized input: {vector_input.toarray()}")  # Convert to array for better logging
-                # 3. Predict using the pre-trained model
-                result = model.predict(vector_input)[0]
-                logging.debug(f"Prediction result: {result}")
-                # 4. Display the result
-                output = 'Spam' if result == 1 else 'Not Spam'
+        if input_sms:
+            logging.debug(f"Received message: {input_sms}")
+            # 1. Preprocess the input message
+            transformed_sms = transform_text(input_sms)
+            logging.debug(f"Transformed message: {transformed_sms}")
+            # 2. Vectorize the transformed message
+            vector_input = tfidf.transform([transformed_sms])
+            logging.debug(f"Vectorized input: {vector_input.toarray()}")  # Convert to array for better logging
+            # 3. Predict using the pre-trained model
+            result = model.predict(vector_input)[0]
+            logging.debug(f"Prediction result: {result}")
+            # 4. Display the result
+            output = 'Spam' if result == 1 else 'Not Spam'
 
-                return jsonify({'prediction': output})
-            else:
-                return jsonify({'error': 'Empty message provided'}), 400
+            return render_template('index.html', prediction_text='Prediction: {}'.format(output))
         else:
-            return jsonify({'error': 'Invalid input format, expected JSON'}), 400
-
+            return render_template('index.html', prediction_text='Please enter a message to classify.')
     except Exception as e:
         logging.error(f"Error occurred: {str(e)}")
         logging.error(traceback.format_exc())  # Log full traceback for debugging
-        return jsonify({'error': 'An internal error occurred. Please try again later.'}), 500
+        return render_template('index.html', prediction_text='An error occurred. Please try again.')
 
 # Run the Flask app
 if __name__ == "__main__":
     app.run(debug=True)
+  
